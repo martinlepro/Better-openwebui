@@ -6,6 +6,7 @@ Control (POST /control, JSON):
   {"reset": true}
 Introspection: GET /log -> every chat request received (tools offered, last messages)
 """
+
 import json
 import threading
 import time
@@ -15,10 +16,19 @@ STATE = {'limit_next': 0, 'retry_after': 6, 'agent_file': None, 'agent_tools': [
 
 
 def chunk(delta, finish=None):
-    return 'data: ' + json.dumps({
-        'id': 'chatcmpl-fake', 'object': 'chat.completion.chunk', 'created': int(time.time()), 'model': 'fake-claude',
-        'choices': [{'index': 0, 'delta': delta, 'finish_reason': finish}],
-    }) + '\n\n'
+    return (
+        'data: '
+        + json.dumps(
+            {
+                'id': 'chatcmpl-fake',
+                'object': 'chat.completion.chunk',
+                'created': int(time.time()),
+                'model': 'fake-claude',
+                'choices': [{'index': 0, 'delta': delta, 'finish_reason': finish}],
+            }
+        )
+        + '\n\n'
+    )
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -53,7 +63,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith('/v1/models'):
-            return self._json(200, {'object': 'list', 'data': [{'id': 'fake-claude', 'object': 'model', 'created': 0, 'owned_by': 'fake'}]})
+            return self._json(
+                200,
+                {
+                    'object': 'list',
+                    'data': [{'id': 'fake-claude', 'object': 'model', 'created': 0, 'owned_by': 'fake'}],
+                },
+            )
         if self.path == '/log':
             return self._json(200, STATE['log'])
         return self._json(404, {'error': 'nope'})
@@ -76,7 +92,16 @@ class Handler(BaseHTTPRequestHandler):
         messages = data.get('messages') or []
         tools = [t['function']['name'] for t in (data.get('tools') or [])]
         with STATE['lock']:
-            STATE['log'].append({'keys': sorted(data.keys()), 'tool_outputs': [m.get('content') for m in messages if m.get('role') == 'tool'], 'tools': tools, 'n_messages': len(messages), 'last': (messages[-1] if messages else None), 'roles': [m.get('role') for m in messages]})
+            STATE['log'].append(
+                {
+                    'keys': sorted(data.keys()),
+                    'tool_outputs': [m.get('content') for m in messages if m.get('role') == 'tool'],
+                    'tools': tools,
+                    'n_messages': len(messages),
+                    'last': (messages[-1] if messages else None),
+                    'roles': [m.get('role') for m in messages],
+                }
+            )
             limited = STATE['limit_next'] > 0
             if limited:
                 STATE['limit_next'] -= 1
@@ -85,8 +110,14 @@ class Handler(BaseHTTPRequestHandler):
             retry_after = STATE['retry_after']
 
         if limited:
-            return self._json(429, {'type': 'error', 'error': {'type': 'rate_limit_error', 'message': 'Usage limit reached for this window.'}},
-                              {'retry-after': str(retry_after)})
+            return self._json(
+                429,
+                {
+                    'type': 'error',
+                    'error': {'type': 'rate_limit_error', 'message': 'Usage limit reached for this window.'},
+                },
+                {'retry-after': str(retry_after)},
+            )
 
         has_tool_result = any(m.get('role') == 'tool' for m in messages)
         stream = data.get('stream')
@@ -94,17 +125,45 @@ class Handler(BaseHTTPRequestHandler):
         if agent_tools and round_no < len(agent_tools) and tools:
             spec = agent_tools[round_no]
             events = [
-                chunk({'role': 'assistant', 'content': None, 'tool_calls': [{'index': 0, 'id': f'call_{round_no}', 'type': 'function', 'function': {'name': spec['name'], 'arguments': json.dumps(spec['args'])}}]}),
+                chunk(
+                    {
+                        'role': 'assistant',
+                        'content': None,
+                        'tool_calls': [
+                            {
+                                'index': 0,
+                                'id': f'call_{round_no}',
+                                'type': 'function',
+                                'function': {'name': spec['name'], 'arguments': json.dumps(spec['args'])},
+                            }
+                        ],
+                    }
+                ),
                 chunk({}, 'tool_calls'),
                 'data: [DONE]\n\n',
             ]
             return self._sse(events)
         if agent_tools and round_no >= len(agent_tools):
-            return self._sse([chunk({'role': 'assistant', 'content': 'All steps done.'}), chunk({}, 'stop'), 'data: [DONE]\n\n'])
+            return self._sse(
+                [chunk({'role': 'assistant', 'content': 'All steps done.'}), chunk({}, 'stop'), 'data: [DONE]\n\n']
+            )
         if agent_file and 'local_write_file' in tools and not has_tool_result:
             args = json.dumps({'path': agent_file, 'content': 'written by the fake agent\n'})
             events = [
-                chunk({'role': 'assistant', 'content': None, 'tool_calls': [{'index': 0, 'id': 'call_1', 'type': 'function', 'function': {'name': 'local_write_file', 'arguments': args}}]}),
+                chunk(
+                    {
+                        'role': 'assistant',
+                        'content': None,
+                        'tool_calls': [
+                            {
+                                'index': 0,
+                                'id': 'call_1',
+                                'type': 'function',
+                                'function': {'name': 'local_write_file', 'arguments': args},
+                            }
+                        ],
+                    }
+                ),
                 chunk({}, 'tool_calls'),
                 'data: [DONE]\n\n',
             ]
@@ -113,8 +172,22 @@ class Handler(BaseHTTPRequestHandler):
             events = [chunk({'role': 'assistant', 'content': text}), chunk({}, 'stop'), 'data: [DONE]\n\n']
 
         if not stream:
-            return self._json(200, {'id': 'x', 'object': 'chat.completion', 'created': 0, 'model': 'fake-claude',
-                                    'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': 'Hello from fake Claude.'}, 'finish_reason': 'stop'}]})
+            return self._json(
+                200,
+                {
+                    'id': 'x',
+                    'object': 'chat.completion',
+                    'created': 0,
+                    'model': 'fake-claude',
+                    'choices': [
+                        {
+                            'index': 0,
+                            'message': {'role': 'assistant', 'content': 'Hello from fake Claude.'},
+                            'finish_reason': 'stop',
+                        }
+                    ],
+                },
+            )
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
         self.send_header('Cache-Control', 'no-cache')

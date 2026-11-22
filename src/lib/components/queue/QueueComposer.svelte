@@ -70,7 +70,11 @@
 		try {
 			const options: QueueItemOptions = {};
 			if (agentEnabled && agentAvailable) {
-				options.local_agent = { enabled: true, cwd: agentCwd.trim() || undefined, approval: agentApproval };
+				options.local_agent = {
+					enabled: true,
+					cwd: agentCwd.trim() || undefined,
+					approval: agentApproval
+				};
 			}
 			await createQueueItem(localStorage.token, {
 				prompt: prompt.trim(),
@@ -100,7 +104,9 @@
 	class="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-850 dark:bg-gray-900"
 	on:submit|preventDefault={submit}
 >
-	<div class="flex items-center gap-1 rounded-full bg-gray-100 p-0.5 text-[0.8125rem] dark:bg-gray-800 self-start">
+	<div
+		class="flex items-center gap-1 rounded-full bg-gray-100 p-0.5 text-[0.8125rem] dark:bg-gray-800 self-start"
+	>
 		<button
 			type="button"
 			class="rounded-full px-3 py-1 transition {mode === 'new'
@@ -131,13 +137,20 @@
 		{:else}
 			<div>
 				<label class={label} for="queue-title">{$i18n.t('Title')} ({$i18n.t('optional')})</label>
-				<input id="queue-title" class={field} bind:value={title} placeholder={$i18n.t('Refactor the parser')} />
+				<input
+					id="queue-title"
+					class={field}
+					bind:value={title}
+					placeholder={$i18n.t('Refactor the parser')}
+				/>
 			</div>
 		{/if}
 
 		<div>
 			<label class={label} for="queue-model">
-				{$i18n.t('Model')}{mode === 'existing' ? ` (${$i18n.t('default: the conversation\'s model')})` : ''}
+				{$i18n.t('Model')}{mode === 'existing'
+					? ` (${$i18n.t("default: the conversation's model")})`
+					: ''}
 			</label>
 			<select id="queue-model" class={field} bind:value={modelId}>
 				{#if mode === 'existing'}<option value="">—</option>{/if}
@@ -175,7 +188,9 @@
 				<input type="checkbox" bind:checked={agentEnabled} on:change={checkCwd} />
 				<Terminal className="size-4" strokeWidth="2" />
 				{$i18n.t('Local agent')}
-				<span class="font-normal text-gray-500">— {$i18n.t('edit files and run commands on this computer')}</span>
+				<span class="font-normal text-gray-500"
+					>— {$i18n.t('edit files and run commands on this computer')}</span
+				>
 			</label>
 
 			{#if agentEnabled}
@@ -190,7 +205,9 @@
 								on:blur={checkCwd}
 								placeholder={agentInfo?.default_cwd ?? ''}
 							/>
-							{#if cwdChecking}<div class="absolute right-2.5 top-2.5"><Spinner className="size-4" /></div>{/if}
+							{#if cwdChecking}<div class="absolute right-2.5 top-2.5">
+									<Spinner className="size-4" />
+								</div>{/if}
 						</div>
 						{#if cwdError}<p class="mt-1 text-xs text-red-500">{cwdError}</p>{/if}
 					</div>
@@ -205,9 +222,13 @@
 				</div>
 				<p class="mt-2 text-[0.75rem] text-gray-500 dark:text-gray-400">
 					{#if agentApproval === 'auto'}
-						{$i18n.t('The assistant acts on its own inside the allowed folders. Dangerous commands stay blocked.')}
+						{$i18n.t(
+							'The assistant acts on its own inside the allowed folders. Dangerous commands stay blocked.'
+						)}
 					{:else}
-						{$i18n.t('When an action needs approval the item waits and you are notified; the rest of the queue continues.')}
+						{$i18n.t(
+							'When an action needs approval the item waits and you are notified; the rest of the queue continues.'
+						)}
 					{/if}
 				</p>
 			{/if}
@@ -220,7 +241,10 @@
 			class="inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-1.5 text-sm text-white transition hover:bg-gray-800 disabled:opacity-40 dark:bg-white dark:text-black dark:hover:bg-gray-200"
 			disabled={!canSubmit}
 		>
-			{#if submitting}<Spinner className="size-3.5" />{:else}<Plus className="size-3.5" strokeWidth="2.5" />{/if}
+			{#if submitting}<Spinner className="size-3.5" />{:else}<Plus
+					className="size-3.5"
+					strokeWidth="2.5"
+				/>{/if}
 			{$i18n.t('Add to the queue')}
 		</button>
 	</div>

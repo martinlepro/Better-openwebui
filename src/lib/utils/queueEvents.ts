@@ -94,7 +94,10 @@ export const describeQueueEvent = (
 				title: t('Limit reached'),
 				body:
 					(d.known_reset === false
-						? t('Reset time unknown, trying again at {{time}} (in {{duration}}).', { time, duration })
+						? t('Reset time unknown, trying again at {{time}} (in {{duration}}).', {
+								time,
+								duration
+							})
 						: t('Resuming automatically at {{time}} (in {{duration}}).', { time, duration })) +
 					(waiting > 0 ? ` ${t('{{count}} waiting.', { count: waiting })}` : ''),
 				path: '/queue',
@@ -197,7 +200,8 @@ const LIMIT_PATTERNS = [
 	/\b429\b/,
 	/\b529\b/
 ];
-const NOT_A_LIMIT = /context[ _-]?(?:length|window)|maximum context|prompt is too long|input is too long/i;
+const NOT_A_LIMIT =
+	/context[ _-]?(?:length|window)|maximum context|prompt is too long|input is too long/i;
 
 export const looksLikeLimitError = (error: unknown): boolean => {
 	let text = '';

@@ -15,7 +15,9 @@
 
 	let resumeMessage = value.resume_message;
 	let permission: NotificationPermission | 'unsupported' =
-		typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported';
+		typeof window !== 'undefined' && 'Notification' in window
+			? Notification.permission
+			: 'unsupported';
 
 	const save = async (patch: Partial<QueueSettings>) => {
 		try {
@@ -63,11 +65,17 @@
 			label: 'Approval required',
 			hint: 'The assistant wants to run an action you must allow'
 		},
-		{ key: 'notify_item_failed', label: 'A conversation failed', hint: 'Errors that are not a limit' }
+		{
+			key: 'notify_item_failed',
+			label: 'A conversation failed',
+			hint: 'Errors that are not a limit'
+		}
 	];
 </script>
 
-<div class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-850 dark:bg-gray-900">
+<div
+	class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-850 dark:bg-gray-900"
+>
 	<div class="flex items-start justify-between gap-4">
 		<div>
 			<div class="text-sm font-medium">{$i18n.t('Resume automatically after a limit')}</div>
@@ -85,17 +93,25 @@
 	</div>
 
 	<div>
-		<label class="mb-1 block text-[0.75rem] font-medium text-gray-500 dark:text-gray-400" for="resume-message">
+		<label
+			class="mb-1 block text-[0.75rem] font-medium text-gray-500 dark:text-gray-400"
+			for="resume-message"
+		>
 			{$i18n.t('Message sent to continue')}
 		</label>
 		<textarea
 			id="resume-message"
 			class="min-h-16 w-full resize-y rounded-xl border border-gray-100 bg-transparent px-3 py-2 text-sm outline-hidden dark:border-gray-800"
 			bind:value={resumeMessage}
-			on:blur={() => resumeMessage.trim() && resumeMessage !== value.resume_message && save({ resume_message: resumeMessage })}
+			on:blur={() =>
+				resumeMessage.trim() &&
+				resumeMessage !== value.resume_message &&
+				save({ resume_message: resumeMessage })}
 		></textarea>
 		<p class="mt-1 text-[0.6875rem] text-gray-400">
-			{$i18n.t('If the reply failed before writing anything, the same question is simply asked again instead.')}
+			{$i18n.t(
+				'If the reply failed before writing anything, the same question is simply asked again instead.'
+			)}
 		</p>
 	</div>
 
@@ -111,7 +127,9 @@
 					{$i18n.t('Enable browser notifications')}
 				</button>
 			{:else}
-				<span class="text-xs text-emerald-600 dark:text-emerald-400">{$i18n.t('Browser notifications are on.')}</span>
+				<span class="text-xs text-emerald-600 dark:text-emerald-400"
+					>{$i18n.t('Browser notifications are on.')}</span
+				>
 			{/if}
 		</div>
 

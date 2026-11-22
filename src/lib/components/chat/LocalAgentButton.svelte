@@ -23,7 +23,8 @@
 
 	$: featureOn = !!($config?.features as any)?.enable_local_agent;
 	$: active = featureOn && $localAgentPrefs.enabled;
-	$: folderName = ($localAgentPrefs.cwd || info?.default_cwd || '').split(/[\\/]/).filter(Boolean).pop() ?? '';
+	$: folderName =
+		($localAgentPrefs.cwd || info?.default_cwd || '').split(/[\\/]/).filter(Boolean).pop() ?? '';
 
 	onMount(async () => {
 		if (!featureOn) return;
@@ -56,9 +57,21 @@
 	};
 
 	const APPROVALS = [
-		{ value: 'ask', label: 'Ask for every change', hint: 'You approve each edit and command before it runs.' },
-		{ value: 'edits', label: 'Edits run, commands ask', hint: 'Files are changed freely; commands and servers need your approval.' },
-		{ value: 'auto', label: 'Autonomous', hint: 'Nothing asks. Everything the assistant does is real and immediate.' }
+		{
+			value: 'ask',
+			label: 'Ask for every change',
+			hint: 'You approve each edit and command before it runs.'
+		},
+		{
+			value: 'edits',
+			label: 'Edits run, commands ask',
+			hint: 'Files are changed freely; commands and servers need your approval.'
+		},
+		{
+			value: 'auto',
+			label: 'Autonomous',
+			hint: 'Nothing asks. Everything the assistant does is real and immediate.'
+		}
 	] as const;
 
 	$: hint = APPROVALS.find((a) => a.value === $localAgentPrefs.approval)?.hint ?? '';
@@ -82,7 +95,10 @@
 			</button>
 		</Tooltip>
 
-		<div slot="content" class="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 text-sm shadow-lg dark:border-gray-800 dark:bg-gray-900">
+		<div
+			slot="content"
+			class="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 text-sm shadow-lg dark:border-gray-800 dark:bg-gray-900"
+		>
 			<div class="flex items-center justify-between gap-3">
 				<div>
 					<div class="font-medium">{$i18n.t('Local agent')}</div>
@@ -90,17 +106,27 @@
 						{$i18n.t('Edit files and run commands on this computer, like Claude Code.')}
 					</div>
 				</div>
-				<Switch state={$localAgentPrefs.enabled} ariaLabel={$i18n.t('Local agent')} on:change={(e) => toggle(e.detail)} />
+				<Switch
+					state={$localAgentPrefs.enabled}
+					ariaLabel={$i18n.t('Local agent')}
+					on:change={(e) => toggle(e.detail)}
+				/>
 			</div>
 
 			{#if info?.running_in_docker}
-				<div class="rounded-xl bg-amber-50 px-2.5 py-2 text-[0.6875rem] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-					{$i18n.t('The server runs inside Docker: the agent acts inside the container, not on your computer.')}
+				<div
+					class="rounded-xl bg-amber-50 px-2.5 py-2 text-[0.6875rem] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200"
+				>
+					{$i18n.t(
+						'The server runs inside Docker: the agent acts inside the container, not on your computer.'
+					)}
 				</div>
 			{/if}
 
 			<div>
-				<label class="mb-1 block text-[0.75rem] text-gray-500" for="local-agent-cwd">{$i18n.t('Working folder')}</label>
+				<label class="mb-1 block text-[0.75rem] text-gray-500" for="local-agent-cwd"
+					>{$i18n.t('Working folder')}</label
+				>
 				<input
 					id="local-agent-cwd"
 					class="w-full rounded-xl border border-gray-100 bg-transparent px-2.5 py-1.5 text-sm outline-hidden dark:border-gray-800"
@@ -119,7 +145,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-[0.75rem] text-gray-500" for="local-agent-approval">{$i18n.t('Approvals')}</label>
+				<label class="mb-1 block text-[0.75rem] text-gray-500" for="local-agent-approval"
+					>{$i18n.t('Approvals')}</label
+				>
 				<select
 					id="local-agent-approval"
 					class="w-full rounded-xl border border-gray-100 bg-transparent px-2.5 py-1.5 text-sm outline-hidden dark:border-gray-800 dark:bg-gray-900"
@@ -133,7 +161,9 @@
 			</div>
 
 			<p class="text-[0.6875rem] text-gray-400">
-				{$i18n.t('Reading files never asks. Dangerous commands (rm -rf /, sudo, shutdown…) are always blocked.')}
+				{$i18n.t(
+					'Reading files never asks. Dangerous commands (rm -rf /, sudo, shutdown…) are always blocked.'
+				)}
 				{#if info}· {info.system} · {info.shell}{/if}
 			</p>
 		</div>

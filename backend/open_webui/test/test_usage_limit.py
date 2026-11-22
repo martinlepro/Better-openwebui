@@ -94,7 +94,9 @@ def test_bare_number_clock_is_ignored():
 
 
 def test_overloaded():
-    info = ul.detect_limit({'type': 'error', 'error': {'type': 'overloaded_error', 'message': 'Overloaded'}}, status=529, now=NOW)
+    info = ul.detect_limit(
+        {'type': 'error', 'error': {'type': 'overloaded_error', 'message': 'Overloaded'}}, status=529, now=NOW
+    )
     assert info.kind == ul.KIND_OVERLOADED
 
 

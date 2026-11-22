@@ -104,7 +104,9 @@
 				>
 					<ChevronUp className="size-3.5" strokeWidth="2.5" />
 				</button>
-				<span class="text-[0.6875rem] tabular-nums text-gray-400 dark:text-gray-500">{position}</span>
+				<span class="text-[0.6875rem] tabular-nums text-gray-400 dark:text-gray-500"
+					>{position}</span
+				>
 				<button
 					type="button"
 					class={iconButton}
@@ -191,16 +193,23 @@
 					</div>
 				</div>
 			{:else}
-				<p class="mt-0.5 line-clamp-2 whitespace-pre-wrap break-words text-[0.8125rem] text-gray-600 dark:text-gray-400">
+				<p
+					class="mt-0.5 line-clamp-2 whitespace-pre-wrap break-words text-[0.8125rem] text-gray-600 dark:text-gray-400"
+				>
 					{item.prompt}
 				</p>
 			{/if}
 
-			<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.6875rem] text-gray-400 dark:text-gray-500">
+			<div
+				class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.6875rem] text-gray-400 dark:text-gray-500"
+			>
 				{#if modelName}<span>{modelName}</span>{/if}
-				{#if item.attempts > 1}<span>{$i18n.t('{{count}} attempts', { count: item.attempts })}</span>{/if}
+				{#if item.attempts > 1}<span>{$i18n.t('{{count}} attempts', { count: item.attempts })}</span
+					>{/if}
 				{#if item.status === 'pending' && limitActive}
-					<span class="text-amber-600 dark:text-amber-400">{$i18n.t('Held until the limit is over')}</span>
+					<span class="text-amber-600 dark:text-amber-400"
+						>{$i18n.t('Held until the limit is over')}</span
+					>
 				{:else if retryIn > 0}
 					<span>{$i18n.t('Retrying in {{duration}}', { duration: formatDuration(retryIn) })}</span>
 				{/if}
@@ -208,7 +217,9 @@
 			</div>
 
 			{#if item.last_error && ['failed', 'cancelled', 'pending', 'done'].includes(item.status)}
-				<p class="mt-1 line-clamp-2 break-words text-[0.6875rem] text-red-500/90 dark:text-red-400/90">
+				<p
+					class="mt-1 line-clamp-2 break-words text-[0.6875rem] text-red-500/90 dark:text-red-400/90"
+				>
 					{item.last_error}
 				</p>
 			{/if}
@@ -217,54 +228,94 @@
 		<div class="flex shrink-0 items-center gap-0.5 opacity-70 transition group-hover:opacity-100">
 			{#if item.chat_id}
 				<Tooltip content={$i18n.t('Open conversation')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Open conversation')} on:click={() => dispatch('open')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Open conversation')}
+						on:click={() => dispatch('open')}
+					>
 						<ChatBubble className="size-3.5" strokeWidth="2" />
 					</button>
 				</Tooltip>
 			{/if}
 			{#if ['pending', 'paused', 'failed', 'cancelled'].includes(item.status)}
 				<Tooltip content={$i18n.t('Run first')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Run first')} on:click={() => dispatch('runnow')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Run first')}
+						on:click={() => dispatch('runnow')}
+					>
 						<ArrowUpCircle className="size-4" strokeWidth="2" />
 					</button>
 				</Tooltip>
 			{/if}
 			{#if item.status === 'pending'}
 				<Tooltip content={$i18n.t('Pause this item')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Pause this item')} on:click={() => dispatch('pause')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Pause this item')}
+						on:click={() => dispatch('pause')}
+					>
 						<span class="text-[0.65rem] font-bold leading-none">II</span>
 					</button>
 				</Tooltip>
 			{:else if item.status === 'paused'}
 				<Tooltip content={$i18n.t('Resume this item')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Resume this item')} on:click={() => dispatch('resume')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Resume this item')}
+						on:click={() => dispatch('resume')}
+					>
 						<Play className="size-3.5" />
 					</button>
 				</Tooltip>
 			{/if}
 			{#if item.status === 'failed' || item.status === 'cancelled'}
 				<Tooltip content={$i18n.t('Retry')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Retry')} on:click={() => dispatch('retry')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Retry')}
+						on:click={() => dispatch('retry')}
+					>
 						<ArrowPath className="size-3.5" strokeWidth="2" />
 					</button>
 				</Tooltip>
 			{/if}
 			{#if editable && !editing}
 				<Tooltip content={$i18n.t('Edit')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Edit')} on:click={startEdit}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Edit')}
+						on:click={startEdit}
+					>
 						<Pencil className="size-3.5" strokeWidth="2" />
 					</button>
 				</Tooltip>
 			{/if}
 			{#if active}
 				<Tooltip content={$i18n.t('Cancel')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Cancel')} on:click={() => dispatch('cancel')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Cancel')}
+						on:click={() => dispatch('cancel')}
+					>
 						<XMark className="size-3.5" strokeWidth="2.5" />
 					</button>
 				</Tooltip>
 			{:else}
 				<Tooltip content={$i18n.t('Delete')}>
-					<button type="button" class={iconButton} aria-label={$i18n.t('Delete')} on:click={() => dispatch('delete')}>
+					<button
+						type="button"
+						class={iconButton}
+						aria-label={$i18n.t('Delete')}
+						on:click={() => dispatch('delete')}
+					>
 						<GarbageBin className="size-3.5" strokeWidth="2" />
 					</button>
 				</Tooltip>

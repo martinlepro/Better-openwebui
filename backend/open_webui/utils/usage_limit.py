@@ -61,7 +61,10 @@ _TEXT_LIMIT_PATTERNS = [
             re.I,
         ),
     ),
-    (KIND_OVERLOADED, re.compile(r'overloaded(?:_error)?|at capacity|service (?:is )?(?:temporarily )?unavailable', re.I)),
+    (
+        KIND_OVERLOADED,
+        re.compile(r'overloaded(?:_error)?|at capacity|service (?:is )?(?:temporarily )?unavailable', re.I),
+    ),
 ]
 
 # Text that looks like a limit but is not one (context size, output size...).
@@ -91,7 +94,9 @@ _UNITS = {
     'day': 86400,
     'days': 86400,
 }
-_DURATION_PART = re.compile(r'(\d+(?:\.\d+)?)\s*(days?|d|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)(?![a-z])', re.I)
+_DURATION_PART = re.compile(
+    r'(\d+(?:\.\d+)?)\s*(days?|d|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)(?![a-z])', re.I
+)
 _RELATIVE = re.compile(
     r'(?:in|after|within|for)\s+(?:about |around |approximately |~)?'
     r'((?:\d+(?:\.\d+)?\s*(?:days?|d|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)(?![a-z])[\s,]*(?:and\s+)?)+)',

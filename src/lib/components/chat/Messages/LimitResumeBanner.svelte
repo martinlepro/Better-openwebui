@@ -23,7 +23,8 @@
 	let clockOffset = 0;
 	let timer: ReturnType<typeof setInterval>;
 
-	$: visible = !!($config?.features as any)?.enable_chat_queue && !!chatId && looksLikeLimitError(error);
+	$: visible =
+		!!($config?.features as any)?.enable_chat_queue && !!chatId && looksLikeLimitError(error);
 	$: remaining = resumeAt ? Math.max(0, resumeAt - (now + clockOffset)) : 0;
 
 	// Already armed (e.g. by the auto-resume setting, or earlier)?

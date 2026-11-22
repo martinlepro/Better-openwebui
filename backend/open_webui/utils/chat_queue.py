@@ -176,14 +176,20 @@ def plan_send(history: Optional[dict], item: ChatQueueItemModel, resume_message:
 
 _TEXTS = {
     'fr': {
-        'limit_reached': ('Limite atteinte', 'Limite atteinte. Reprise automatique à {at} (dans {wait}). {pending} en attente.'),
+        'limit_reached': (
+            'Limite atteinte',
+            'Limite atteinte. Reprise automatique à {at} (dans {wait}). {pending} en attente.',
+        ),
         'item_done': ('Conversation terminée', '{title}\n{preview}'),
         'queue_done': ('File d’attente terminée', '{done} terminée(s), {failed} en échec.'),
         'needs_approval': ('Approbation requise', '« {title} » attend votre validation pour exécuter une action.'),
         'item_failed': ('Échec d’une conversation', '« {title} » a échoué : {error}'),
     },
     'en': {
-        'limit_reached': ('Limit reached', 'Limit reached. Resuming automatically at {at} (in {wait}). {pending} waiting.'),
+        'limit_reached': (
+            'Limit reached',
+            'Limit reached. Resuming automatically at {at} (in {wait}). {pending} waiting.',
+        ),
         'item_done': ('Conversation finished', '{title}\n{preview}'),
         'queue_done': ('Queue finished', '{done} finished, {failed} failed.'),
         'needs_approval': ('Approval required', '"{title}" needs your approval to run an action.'),

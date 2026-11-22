@@ -4,7 +4,12 @@
 	import { goto } from '$app/navigation';
 
 	import { chatQueueState, chatQueueTick, config } from '$lib/stores';
-	import { clearQueueLimit, getQueue, updateQueueSettings, type QueueItem } from '$lib/apis/chat-queue';
+	import {
+		clearQueueLimit,
+		getQueue,
+		updateQueueSettings,
+		type QueueItem
+	} from '$lib/apis/chat-queue';
 	import { formatClock, formatDuration } from '$lib/utils/queueEvents';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
@@ -26,7 +31,9 @@
 	$: limitActive = !!state?.limit_until && state.limit_until > serverNow;
 	$: remaining = limitActive && state?.limit_until ? state.limit_until - serverNow : 0;
 	$: autoResume = state?.settings?.auto_resume ?? false;
-	$: openCount = items.filter((i) => ['pending', 'running', 'needs_approval'].includes(i.status)).length;
+	$: openCount = items.filter((i) =>
+		['pending', 'running', 'needs_approval'].includes(i.status)
+	).length;
 
 	const load = async () => {
 		if (!featureOn) return;
@@ -80,7 +87,9 @@
 	<Dropdown bind:show side="top" align="start" contentClass="w-[21rem] max-w-[92vw]">
 		<Tooltip
 			content={limitActive
-				? $i18n.t('Limit reached — resuming in {{duration}}', { duration: formatDuration(remaining) })
+				? $i18n.t('Limit reached — resuming in {{duration}}', {
+						duration: formatDuration(remaining)
+					})
 				: $i18n.t('Queue and auto-resume')}
 			placement="top"
 		>
@@ -102,19 +111,30 @@
 			</button>
 		</Tooltip>
 
-		<div slot="content" class="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 text-sm shadow-lg dark:border-gray-800 dark:bg-gray-900">
+		<div
+			slot="content"
+			class="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 text-sm shadow-lg dark:border-gray-800 dark:bg-gray-900"
+		>
 			<div class="flex items-start justify-between gap-3">
 				<div>
 					<div class="font-medium">{$i18n.t('Resume automatically after a limit')}</div>
 					<div class="text-[0.75rem] text-gray-500 dark:text-gray-400">
-						{$i18n.t('When a reply stops on a usage limit, a message is sent to continue as soon as the limit is over.')}
+						{$i18n.t(
+							'When a reply stops on a usage limit, a message is sent to continue as soon as the limit is over.'
+						)}
 					</div>
 				</div>
-				<Switch state={autoResume} ariaLabel={$i18n.t('Resume automatically after a limit')} on:change={(e) => setAutoResume(e.detail)} />
+				<Switch
+					state={autoResume}
+					ariaLabel={$i18n.t('Resume automatically after a limit')}
+					on:change={(e) => setAutoResume(e.detail)}
+				/>
 			</div>
 
 			{#if limitActive && state}
-				<div class="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+				<div
+					class="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 dark:bg-amber-500/10 dark:text-amber-100"
+				>
 					<div class="font-medium">{$i18n.t('Limit reached')}</div>
 					<div>
 						{$i18n.t('Resuming automatically at {{time}} (in {{duration}}).', {
@@ -128,9 +148,13 @@
 				</div>
 			{/if}
 
-			<div class="flex items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-800">
+			<div
+				class="flex items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-800"
+			>
 				<span class="text-[0.75rem] text-gray-500">
-					{openCount > 0 ? $i18n.t('{{count}} in the queue', { count: openCount }) : $i18n.t('The queue is empty')}
+					{openCount > 0
+						? $i18n.t('{{count}} in the queue', { count: openCount })
+						: $i18n.t('The queue is empty')}
 				</span>
 				<button
 					type="button"

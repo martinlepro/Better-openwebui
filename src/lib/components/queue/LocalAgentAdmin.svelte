@@ -55,7 +55,9 @@
 </script>
 
 {#if cfg}
-	<div class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-850 dark:bg-gray-900">
+	<div
+		class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-850 dark:bg-gray-900"
+	>
 		<div>
 			<div class="text-sm font-medium">{$i18n.t('Local agent')} — {$i18n.t('administration')}</div>
 			<p class="mt-0.5 text-[0.75rem] text-gray-500 dark:text-gray-400">
@@ -66,7 +68,9 @@
 		</div>
 
 		{#if cfg.running_in_docker}
-			<div class="rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+			<div
+				class="rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800 dark:bg-amber-500/10 dark:text-amber-200"
+			>
 				{$i18n.t(
 					'The server runs inside Docker: the agent will act inside the container, not on your computer. Run the backend directly on your machine, or mount your project folder into the container.'
 				)}
@@ -80,7 +84,9 @@
 		<div class="flex items-center justify-between gap-4">
 			<div>
 				<div class="text-[0.8125rem]">{$i18n.t('Administrators only')}</div>
-				<div class="text-[0.6875rem] text-gray-400">{$i18n.t('Strongly recommended on a shared server')}</div>
+				<div class="text-[0.6875rem] text-gray-400">
+					{$i18n.t('Strongly recommended on a shared server')}
+				</div>
 			</div>
 			<Switch state={cfg.admin_only} on:change={(e) => save({ admin_only: e.detail })} />
 		</div>
@@ -89,24 +95,57 @@
 			<label class="mb-1 block text-[0.75rem] font-medium text-gray-500" for="agent-roots">
 				{$i18n.t('Allowed folders (one per line)')}
 			</label>
-			<textarea id="agent-roots" class="{field} min-h-20 resize-y font-mono text-xs" bind:value={rootsText}></textarea>
+			<textarea
+				id="agent-roots"
+				class="{field} min-h-20 resize-y font-mono text-xs"
+				bind:value={rootsText}
+			></textarea>
 			<p class="mt-1 text-[0.6875rem] text-gray-400">
-				{$i18n.t('File tools cannot leave these folders. Commands run inside them but a shell can reach further: use approvals.')}
+				{$i18n.t(
+					'File tools cannot leave these folders. Commands run inside them but a shell can reach further: use approvals.'
+				)}
 			</p>
 		</div>
 
 		<div class="grid gap-3 sm:grid-cols-3">
 			<div>
-				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-timeout">{$i18n.t('Command timeout (s)')}</label>
-				<input id="agent-timeout" type="number" min="5" max="1800" class={field} bind:value={cfg.command_timeout} />
+				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-timeout"
+					>{$i18n.t('Command timeout (s)')}</label
+				>
+				<input
+					id="agent-timeout"
+					type="number"
+					min="5"
+					max="1800"
+					class={field}
+					bind:value={cfg.command_timeout}
+				/>
 			</div>
 			<div>
-				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-output">{$i18n.t('Max output (chars)')}</label>
-				<input id="agent-output" type="number" min="1000" max="500000" class={field} bind:value={cfg.max_output} />
+				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-output"
+					>{$i18n.t('Max output (chars)')}</label
+				>
+				<input
+					id="agent-output"
+					type="number"
+					min="1000"
+					max="500000"
+					class={field}
+					bind:value={cfg.max_output}
+				/>
 			</div>
 			<div>
-				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-procs">{$i18n.t('Max background processes')}</label>
-				<input id="agent-procs" type="number" min="1" max="20" class={field} bind:value={cfg.max_processes} />
+				<label class="mb-1 block text-[0.75rem] text-gray-500" for="agent-procs"
+					>{$i18n.t('Max background processes')}</label
+				>
+				<input
+					id="agent-procs"
+					type="number"
+					min="1"
+					max="20"
+					class={field}
+					bind:value={cfg.max_processes}
+				/>
 			</div>
 		</div>
 

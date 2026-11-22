@@ -3,7 +3,15 @@
 	import { toast } from 'svelte-sonner';
 
 	import { getPageContext } from '$lib/utils/page';
-	import { chatQueueState, chatQueueTick, config, mobile, models, showSidebar, user } from '$lib/stores';
+	import {
+		chatQueueState,
+		chatQueueTick,
+		config,
+		mobile,
+		models,
+		showSidebar,
+		user
+	} from '$lib/stores';
 	import {
 		clearFinishedQueueItems,
 		clearQueueLimit,
@@ -34,7 +42,12 @@
 	const { goto, tab: pageTab } = getPageContext();
 
 	const ACTIVE = ['running', 'needs_approval', 'pending', 'paused'];
-	const STATUS_RANK: Record<string, number> = { running: 0, needs_approval: 1, pending: 2, paused: 3 };
+	const STATUS_RANK: Record<string, number> = {
+		running: 0,
+		needs_approval: 1,
+		pending: 2,
+		paused: 3
+	};
 
 	let items: QueueItem[] = [];
 	let state: QueueState | null = null;
@@ -136,7 +149,9 @@
 
 	const togglePause = () =>
 		run(async () => {
-			state = state?.paused ? await resumeQueue(localStorage.token) : await pauseQueue(localStorage.token);
+			state = state?.paused
+				? await resumeQueue(localStorage.token)
+				: await pauseQueue(localStorage.token);
 		});
 
 	const skipLimit = () =>
@@ -168,7 +183,8 @@
 </svelte:head>
 
 <div
-	class="flex h-full max-h-full w-full max-w-full flex-col transition-width duration-200 ease-in-out {$showSidebar && !pageTab
+	class="flex h-full max-h-full w-full max-w-full flex-col transition-width duration-200 ease-in-out {$showSidebar &&
+	!pageTab
 		? 'md:max-w-[calc(100%-var(--sidebar-width))]'
 		: ''}"
 >
@@ -246,7 +262,9 @@
 								})}
 							</div>
 							{#if state.limit_message}
-								<div class="mt-0.5 line-clamp-2 break-words text-[0.6875rem] opacity-70">{state.limit_message}</div>
+								<div class="mt-0.5 line-clamp-2 break-words text-[0.6875rem] opacity-70">
+									{state.limit_message}
+								</div>
 							{/if}
 						</div>
 						<button
@@ -277,7 +295,9 @@
 					<div class="mb-2 flex items-center justify-between px-1">
 						<h2 class="text-sm font-medium">{$i18n.t('Up next')}</h2>
 						{#if waiting.length > 1}
-							<span class="text-[0.6875rem] text-gray-400">{$i18n.t('Runs from top to bottom, highest priority first.')}</span>
+							<span class="text-[0.6875rem] text-gray-400"
+								>{$i18n.t('Runs from top to bottom, highest priority first.')}</span
+							>
 						{/if}
 					</div>
 
@@ -287,7 +307,9 @@
 						<div
 							class="rounded-2xl border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-800"
 						>
-							{$i18n.t('The queue is empty. Add a conversation above — it is sent automatically, even while you are away.')}
+							{$i18n.t(
+								'The queue is empty. Add a conversation above — it is sent automatically, even while you are away.'
+							)}
 						</div>
 					{:else}
 						<div class="flex flex-col gap-2">
@@ -303,9 +325,14 @@
 									{limitActive}
 									on:move={(e) => move(item, e.detail.direction)}
 									on:runnow={() => run(() => runQueueItemNow(localStorage.token, item.id))}
-									on:pause={() => run(() => updateQueueItem(localStorage.token, item.id, { status: 'paused' }))}
-									on:resume={() => run(() => updateQueueItem(localStorage.token, item.id, { status: 'pending' }))}
-									on:cancel={() => run(() => updateQueueItem(localStorage.token, item.id, { status: 'cancelled' }))}
+									on:pause={() =>
+										run(() => updateQueueItem(localStorage.token, item.id, { status: 'paused' }))}
+									on:resume={() =>
+										run(() => updateQueueItem(localStorage.token, item.id, { status: 'pending' }))}
+									on:cancel={() =>
+										run(() =>
+											updateQueueItem(localStorage.token, item.id, { status: 'cancelled' })
+										)}
 									on:save={(e) => save(item, e)}
 									on:open={() => openChat(item)}
 								/>
@@ -346,7 +373,10 @@
 										modelName={item.model_id ? (modelNames[item.model_id] ?? item.model_id) : ''}
 										on:open={() => openChat(item)}
 										on:runnow={() => run(() => runQueueItemNow(localStorage.token, item.id))}
-										on:retry={() => run(() => updateQueueItem(localStorage.token, item.id, { status: 'pending' }))}
+										on:retry={() =>
+											run(() =>
+												updateQueueItem(localStorage.token, item.id, { status: 'pending' })
+											)}
 										on:save={(e) => save(item, e)}
 										on:delete={() => run(() => deleteQueueItem(localStorage.token, item.id))}
 									/>

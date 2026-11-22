@@ -62,8 +62,22 @@ class World:
         history = self.chats[chat_id]['chat']['history']
         uid, aid = str(uuid4()), str(uuid4())
         parent = history['currentId']
-        history['messages'][uid] = {'id': uid, 'parentId': parent, 'role': 'user', 'content': user_text, 'childrenIds': [aid]}
-        history['messages'][aid] = {'id': aid, 'parentId': uid, 'role': 'assistant', 'content': '', 'done': True, 'childrenIds': [], **(assistant or {})}
+        history['messages'][uid] = {
+            'id': uid,
+            'parentId': parent,
+            'role': 'user',
+            'content': user_text,
+            'childrenIds': [aid],
+        }
+        history['messages'][aid] = {
+            'id': aid,
+            'parentId': uid,
+            'role': 'assistant',
+            'content': '',
+            'done': True,
+            'childrenIds': [],
+            **(assistant or {}),
+        }
         history['currentId'] = aid
         return uid, aid
 
@@ -77,7 +91,14 @@ class World:
         if user_message['id'] not in msgs:
             msgs[user_message['id']] = {**user_message, 'childrenIds': []}
         aid = form_data['id']
-        msgs[aid] = {'id': aid, 'parentId': user_message['id'], 'role': 'assistant', 'content': '', 'done': False, 'childrenIds': []}
+        msgs[aid] = {
+            'id': aid,
+            'parentId': user_message['id'],
+            'role': 'assistant',
+            'content': '',
+            'done': False,
+            'childrenIds': [],
+        }
         msgs[user_message['id']].setdefault('childrenIds', []).append(aid)
         history['currentId'] = aid
 
@@ -91,7 +112,15 @@ class World:
         elif kind == 'approval':
             reply.update(
                 done=False,
-                output=[{'type': 'function_call', 'call_id': 'k1', 'name': 'local_run_command', 'status': 'pending', 'arguments': '{}'}],
+                output=[
+                    {
+                        'type': 'function_call',
+                        'call_id': 'k1',
+                        'name': 'local_run_command',
+                        'status': 'pending',
+                        'arguments': '{}',
+                    }
+                ],
             )
         return {'status': True, 'task_ids': [], 'chat_id': chat_id}
 
@@ -167,7 +196,11 @@ def build(world: World):
     _mod('open_webui.utils.auth', create_token=lambda **kw: 'token')
     _mod('open_webui.utils.misc', parse_duration=lambda v: None)
     _mod('open_webui.utils.models', get_all_models=get_all_models)
-    _mod('open_webui.utils.automations', _build_request=lambda app, token=None: SimpleNamespace(app=app), _resolve_model_defaults=resolve_defaults)
+    _mod(
+        'open_webui.utils.automations',
+        _build_request=lambda app, token=None: SimpleNamespace(app=app),
+        _resolve_model_defaults=resolve_defaults,
+    )
     _mod('open_webui.tasks', has_active_tasks=has_active_tasks, stop_item_tasks=stop_item_tasks)
     _mod('open_webui.socket.main', sio=Sio())
     _mod('open_webui.utils.notifications', notify_target=notify_target)
@@ -177,6 +210,8 @@ def build(world: World):
     runner.LIMIT_MARGIN = 0
 
     app = SimpleNamespace(
-        state=SimpleNamespace(MODELS={'claude': {}}, CHAT_COMPLETION_HANDLER=world.handler, redis=None, WEBUI_NAME='Open WebUI')
+        state=SimpleNamespace(
+            MODELS={'claude': {}}, CHAT_COMPLETION_HANDLER=world.handler, redis=None, WEBUI_NAME='Open WebUI'
+        )
     )
     return runner, models, app

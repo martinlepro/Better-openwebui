@@ -49,9 +49,7 @@ log = logging.getLogger(__name__)
 # Constants
 # --------------------------------------------------------------------------------------
 
-READ_ONLY_TOOLS = frozenset(
-    {'local_read_file', 'local_list_dir', 'local_glob', 'local_search', 'local_process_logs'}
-)
+READ_ONLY_TOOLS = frozenset({'local_read_file', 'local_list_dir', 'local_glob', 'local_search', 'local_process_logs'})
 FILE_EDIT_TOOLS = frozenset({'local_write_file', 'local_edit_file'})
 TOOL_NAMES = READ_ONLY_TOOLS | FILE_EDIT_TOOLS | {'local_run_command', 'local_start_process', 'local_stop_process'}
 
@@ -59,8 +57,23 @@ APPROVAL_POLICIES = ('ask', 'edits', 'auto')
 DEFAULT_POLICY = 'ask'
 
 NOISE_DIRS = frozenset(
-    {'.git', 'node_modules', '__pycache__', '.venv', 'venv', '.mypy_cache', '.pytest_cache', '.next', '.svelte-kit',
-     'dist', 'build', 'target', '.idea', '.cache', '.gradle'}
+    {
+        '.git',
+        'node_modules',
+        '__pycache__',
+        '.venv',
+        'venv',
+        '.mypy_cache',
+        '.pytest_cache',
+        '.next',
+        '.svelte-kit',
+        'dist',
+        'build',
+        'target',
+        '.idea',
+        '.cache',
+        '.gradle',
+    }
 )
 # Folders whose content must never be sent to a model through the file tools.
 SENSITIVE_DIRS = frozenset({'.ssh', '.gnupg', '.aws', '.kube', '.docker', '.azure'})
@@ -78,7 +91,12 @@ _SECRET_ENV = re.compile(
 
 # Commands we refuse whatever the approval mode. Matched against the whole command line.
 _BLOCKED = [
-    (re.compile(r'\brm\s+(?:-[a-z]*\s+)*-[a-z]*[rR][a-z]*\s+(?:-[a-z]*\s+)*(?:--no-preserve-root\s+)?(?:/|~|\$HOME|\*|/\*|\.\.?)(?:\s|$|;|&|\|)'), 'recursive deletion of a root, home or parent folder'),
+    (
+        re.compile(
+            r'\brm\s+(?:-[a-z]*\s+)*-[a-z]*[rR][a-z]*\s+(?:-[a-z]*\s+)*(?:--no-preserve-root\s+)?(?:/|~|\$HOME|\*|/\*|\.\.?)(?:\s|$|;|&|\|)'
+        ),
+        'recursive deletion of a root, home or parent folder',
+    ),
     (re.compile(r'--no-preserve-root'), 'rm --no-preserve-root'),
     (re.compile(r'\bmkfs(?:\.\w+)?\b|\bwipefs\b|\bfdisk\b|\bparted\b'), 'disk formatting / partitioning'),
     (re.compile(r'\bdd\b[^|;&]*\bof=/dev/'), 'writing to a device with dd'),
@@ -87,23 +105,72 @@ _BLOCKED = [
     (re.compile(r'\bformat\s+[a-z]:', re.I), 'formatting a drive'),
     (re.compile(r'\b(?:rd|rmdir)\s+/s\b[^&|;]*\b[a-z]:\\?\s*$', re.I), 'recursive deletion of a drive'),
     (re.compile(r'\b(?:del|erase)\b[^&|;]*\s/s\b[^&|;]*\b[a-z]:\\\s*$', re.I), 'recursive deletion of a drive'),
-    (re.compile(r'(?:^|[;&|(]\s*)(?:shutdown|reboot|halt|poweroff|init\s+[06])\b', re.I), 'shutting down or rebooting the machine'),
+    (
+        re.compile(r'(?:^|[;&|(]\s*)(?:shutdown|reboot|halt|poweroff|init\s+[06])\b', re.I),
+        'shutting down or rebooting the machine',
+    ),
     (re.compile(r'\b(?:sudo|doas|runas)\b|(?:^|[;&|(]\s*)su(?:\s|$)', re.I), 'privilege escalation (sudo/su/runas)'),
-    (re.compile(r'\b(?:curl|wget|iwr|Invoke-WebRequest)\b[^|;&]*\|\s*(?:sudo\s+)?(?:ba|z|da|k)?sh\b', re.I), 'piping a download into a shell (download, read, then run it)'),
+    (
+        re.compile(r'\b(?:curl|wget|iwr|Invoke-WebRequest)\b[^|;&]*\|\s*(?:sudo\s+)?(?:ba|z|da|k)?sh\b', re.I),
+        'piping a download into a shell (download, read, then run it)',
+    ),
     (re.compile(r'\bchmod\s+(?:-R\s+)?0?777\s+/(?:\s|$)'), 'opening permissions on the filesystem root'),
     (re.compile(r'\bchown\s+-R\b[^;&|]*\s/(?:\s|$)'), 'recursive chown of the filesystem root'),
 ]
 
 _SHELL_META = re.compile(r'[;&|<>`\n\r]|\$\(|\$\{')
 _SAFE_COMMANDS = frozenset(
-    {'ls', 'dir', 'pwd', 'cat', 'type', 'head', 'tail', 'wc', 'which', 'where', 'whoami', 'date', 'uname',
-     'hostname', 'tree', 'rg', 'grep', 'stat', 'file', 'du', 'df', 'ps', 'echo', 'basename', 'dirname'}
+    {
+        'ls',
+        'dir',
+        'pwd',
+        'cat',
+        'type',
+        'head',
+        'tail',
+        'wc',
+        'which',
+        'where',
+        'whoami',
+        'date',
+        'uname',
+        'hostname',
+        'tree',
+        'rg',
+        'grep',
+        'stat',
+        'file',
+        'du',
+        'df',
+        'ps',
+        'echo',
+        'basename',
+        'dirname',
+    }
 )
 _SAFE_GIT = frozenset({'status', 'log', 'diff', 'show', 'rev-parse', 'ls-files', 'blame', 'describe', 'shortlog'})
 _SAFE_GIT_LISTING = frozenset({'branch', 'tag', 'remote'})
 _SAFE_LISTING_FLAGS = frozenset({'-v', '-vv', '-a', '-r', '--list', '--all', '-l'})
 _VERSION_FLAGS = frozenset({'--version', '-v', '-V', '-version'})
-_VERSION_COMMANDS = frozenset({'node', 'npm', 'python', 'python3', 'pip', 'pip3', 'git', 'cargo', 'go', 'java', 'deno', 'bun', 'uv', 'pnpm', 'yarn'})
+_VERSION_COMMANDS = frozenset(
+    {
+        'node',
+        'npm',
+        'python',
+        'python3',
+        'pip',
+        'pip3',
+        'git',
+        'cargo',
+        'go',
+        'java',
+        'deno',
+        'bun',
+        'uv',
+        'pnpm',
+        'yarn',
+    }
+)
 
 
 class LocalAgentError(Exception):
@@ -636,7 +703,9 @@ async def local_edit_file(
             old_string, new_string = old_string.replace('\n', '\r\n'), new_string.replace('\n', '\r\n')
         count = text.count(old_string)
         if count == 0:
-            return 'Error: old_string was not found. Read the file again and copy the text exactly (whitespace matters).'
+            return (
+                'Error: old_string was not found. Read the file again and copy the text exactly (whitespace matters).'
+            )
         if count > 1 and not replace_all:
             return (
                 f'Error: old_string appears {count} times. Add surrounding lines to make it unique, '
@@ -1014,7 +1083,7 @@ async def build_system_prompt(user: Optional[dict], metadata: Optional[dict]) ->
     policy = policy if policy in APPROVAL_POLICIES else DEFAULT_POLICY
     approvals = {
         'ask': 'The user approves each action that changes something (edits, commands) before it runs.',
-        'edits': 'File edits run without asking; shell commands and processes need the user\'s approval first.',
+        'edits': "File edits run without asking; shell commands and processes need the user's approval first.",
         'auto': 'Actions run without asking. Be careful: everything you do is real and immediate.',
     }[policy]
     folders = ', '.join(str(r) for r in settings.roots)

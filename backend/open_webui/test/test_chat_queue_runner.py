@@ -63,7 +63,10 @@ async def test_new_conversation_runs_and_notifies():
     assert chat['title'] == 'Parser'
     assert len(world.handler_calls) == 1
     assert world.handler_calls[0]['session_id'] == f'queue:{item.id}'
-    assert [k for k in kinds() if k in ('queue:item_done', 'queue:queue_done')] == ['queue:item_done', 'queue:queue_done']
+    assert [k for k in kinds() if k in ('queue:item_done', 'queue:queue_done')] == [
+        'queue:item_done',
+        'queue:queue_done',
+    ]
     payload = next(e[2] for e in world.events if e[1] == 'queue:item_done')
     assert payload['title'] == 'Parser' and 'All done.' in payload['preview']
     summary = next(e[2] for e in world.events if e[1] == 'queue:queue_done')
@@ -89,7 +92,10 @@ async def test_priority_order_and_single_queue_done():
 async def test_limit_pauses_queue_then_resumes_without_duplicating_the_message():
     item = await add('Build the feature', title='Feature')
     other = await add('Second job', title='Second', priority=200)
-    world.script = [{'kind': 'error', 'error': 'rate_limit_error: Usage limit reached. Try again in 2 hours.'}, {'kind': 'ok', 'text': 'Feature built.'}]
+    world.script = [
+        {'kind': 'error', 'error': 'rate_limit_error: Usage limit reached. Try again in 2 hours.'},
+        {'kind': 'ok', 'text': 'Feature built.'},
+    ]
 
     await tick()
     first = await Q.get_by_id(item.id)
@@ -126,7 +132,10 @@ async def test_limit_pauses_queue_then_resumes_without_duplicating_the_message()
 
 async def test_limit_with_partial_work_continues_with_a_new_message():
     item = await add('Long task', title='Long')
-    world.script = [{'kind': 'error', 'error': 'Too many requests', 'partial': 'I changed 3 files so far'}, {'kind': 'ok'}]
+    world.script = [
+        {'kind': 'error', 'error': 'Too many requests', 'partial': 'I changed 3 files so far'},
+        {'kind': 'ok'},
+    ]
     await tick()
     await expire_limit()
     await tick()
@@ -211,8 +220,18 @@ async def test_needs_approval_then_finishes_when_user_approves():
 
 async def test_changed_files_are_reported_for_local_agent_runs():
     output = [
-        {'type': 'function_call', 'name': 'local_edit_file', 'status': 'completed', 'arguments': '{"path": "src/a.py"}'},
-        {'type': 'function_call', 'name': 'local_write_file', 'status': 'completed', 'arguments': '{"path": "src/b.py", "content": "x"}'},
+        {
+            'type': 'function_call',
+            'name': 'local_edit_file',
+            'status': 'completed',
+            'arguments': '{"path": "src/a.py"}',
+        },
+        {
+            'type': 'function_call',
+            'name': 'local_write_file',
+            'status': 'completed',
+            'arguments': '{"path": "src/b.py", "content": "x"}',
+        },
         {'type': 'function_call', 'name': 'local_run_command', 'status': 'completed', 'arguments': '{"command": "ls"}'},
     ]
     world.script = [{'kind': 'ok', 'output': output}]
@@ -266,7 +285,9 @@ async def test_hook_pauses_queue_and_queues_resume_when_auto_resume_on():
     user = world.users['u1']
     meta = {'chat_id': 'c1', 'message_id': 'm1', 'session_id': 'abc'}
     await runner.on_chat_error(Req(), user, meta, 'Usage limit reached. Try again in 3 hours.', status=429)
-    await runner.on_chat_error(Req(), user, meta, 'Usage limit reached. Try again in 3 hours.', status=429)  # idempotent
+    await runner.on_chat_error(
+        Req(), user, meta, 'Usage limit reached. Try again in 3 hours.', status=429
+    )  # idempotent
     items = await Q.list_by_user('u1')
     assert len(items) == 1 and items[0].kind == m.KIND_RESUME and items[0].chat_id == 'c1'
     assert (await Q.get_state('u1')).limit_until > time.time() + 3 * 3600 - 60
@@ -275,7 +296,9 @@ async def test_hook_pauses_queue_and_queues_resume_when_auto_resume_on():
 
 async def test_hook_without_auto_resume_only_records_the_limit():
     world.add_chat('c1')
-    await runner.on_chat_error(Req(), world.users['u1'], {'chat_id': 'c1', 'message_id': 'm1'}, 'rate_limit_error', status=429)
+    await runner.on_chat_error(
+        Req(), world.users['u1'], {'chat_id': 'c1', 'message_id': 'm1'}, 'rate_limit_error', status=429
+    )
     assert await Q.list_by_user('u1') == []
     assert (await Q.get_state('u1')).limit_until
 
@@ -284,7 +307,9 @@ async def test_hook_ignores_non_limit_errors_and_queue_runs():
     await Q.set_state('u1', settings={'auto_resume': True})
     user = world.users['u1']
     await runner.on_chat_error(Req(), user, {'chat_id': 'c1', 'message_id': 'm'}, 'Invalid API key', status=401)
-    await runner.on_chat_error(Req(), user, {'chat_id': 'c1', 'message_id': 'm', 'session_id': 'queue:x'}, 'rate limit', status=429)
+    await runner.on_chat_error(
+        Req(), user, {'chat_id': 'c1', 'message_id': 'm', 'session_id': 'queue:x'}, 'rate limit', status=429
+    )
     assert await Q.list_by_user('u1') == []
     assert (await Q.get_state('u1')).limit_until is None
 
@@ -295,13 +320,17 @@ async def test_hook_never_raises():
         def app(self):
             raise RuntimeError('boom')
 
-    await runner.on_chat_error(Broken(), world.users['u1'], {'chat_id': 'c1', 'message_id': 'm'}, 'rate limit', status=429)
+    await runner.on_chat_error(
+        Broken(), world.users['u1'], {'chat_id': 'c1', 'message_id': 'm'}, 'rate limit', status=429
+    )
 
 
 async def test_resume_item_skips_when_nothing_to_resume():
     world.add_chat('c1')
     world.add_exchange('c1', assistant={'content': 'fine', 'done': True})
-    item = await Q.insert('u1', m.ChatQueueItemForm(prompt='continue', chat_id='c1', kind=m.KIND_RESUME, model_id='claude'))
+    item = await Q.insert(
+        'u1', m.ChatQueueItemForm(prompt='continue', chat_id='c1', kind=m.KIND_RESUME, model_id='claude')
+    )
     await tick()
     assert world.handler_calls == []
     done = await Q.get_by_id(item.id)
@@ -310,7 +339,9 @@ async def test_resume_item_skips_when_nothing_to_resume():
 
 async def test_resume_retries_when_last_reply_failed_empty():
     world.add_chat('c1')
-    uid, aid = world.add_exchange('c1', user_text='original question', assistant={'error': {'content': 'limit'}, 'content': '', 'done': True})
+    uid, aid = world.add_exchange(
+        'c1', user_text='original question', assistant={'error': {'content': 'limit'}, 'content': '', 'done': True}
+    )
     item = await Q.insert('u1', m.ChatQueueItemForm(prompt='continue', chat_id='c1', kind=m.KIND_RESUME))
     await tick()
     call = world.handler_calls[0]
@@ -325,7 +356,13 @@ async def test_resume_retries_when_last_reply_failed_empty():
 def test_plan_send_variants():
     mk = lambda **kw: m.ChatQueueItemModel(id='i', user_id='u', prompt='p', created_at=1, updated_at=1, **kw)
     assert runner.plan_send(None, mk()) == {'mode': 'append', 'parent_id': None, 'text': 'p'}
-    hist = {'currentId': 'a', 'messages': {'u': {'id': 'u', 'role': 'user'}, 'a': {'id': 'a', 'role': 'assistant', 'parentId': 'u', 'done': True}}}
+    hist = {
+        'currentId': 'a',
+        'messages': {
+            'u': {'id': 'u', 'role': 'user'},
+            'a': {'id': 'a', 'role': 'assistant', 'parentId': 'u', 'done': True},
+        },
+    }
     assert runner.plan_send(hist, mk()) == {'mode': 'append', 'parent_id': 'a', 'text': 'p'}
     assert runner.plan_send({'messages': {}, 'currentId': None}, mk(kind='resume'))['mode'] == 'skip'
 

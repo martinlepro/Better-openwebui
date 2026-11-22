@@ -83,7 +83,12 @@ describe('describeQueueEvent', () => {
 	it('item done: preview and changed files, links to the chat', () => {
 		const n = describeQueueEvent(
 			'queue:item_done',
-			{ title: 'Parser', preview: 'I refactored   the\nparser.', files: ['a.py', 'b.py'], chat_id: 'abc 1' },
+			{
+				title: 'Parser',
+				preview: 'I refactored   the\nparser.',
+				files: ['a.py', 'b.py'],
+				chat_id: 'abc 1'
+			},
 			t
 		)!;
 		expect(n.title).toBe('Conversation finished');
@@ -109,7 +114,11 @@ describe('describeQueueEvent', () => {
 		const a = describeQueueEvent('queue:needs_approval', { title: 'Cleanup', chat_id: 'c1' }, t)!;
 		expect(a.body).toBe('"Cleanup" needs your approval to run an action.');
 		expect(a.path).toBe('/c/c1');
-		const f = describeQueueEvent('queue:item_failed', { title: 'Boom', error: 'Invalid API key' }, t)!;
+		const f = describeQueueEvent(
+			'queue:item_failed',
+			{ title: 'Boom', error: 'Invalid API key' },
+			t
+		)!;
 		expect(f.body).toBe('"Boom" failed: Invalid API key');
 		expect(f.level).toBe('error');
 	});
