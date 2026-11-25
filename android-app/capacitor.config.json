@@ -1,0 +1,10 @@
+{
+	"appId": "io.github.martinlepro.betteropenwebui",
+	"appName": "Better Open WebUI",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true,
+		"allowNavigation": ["*"]
+	}
+}

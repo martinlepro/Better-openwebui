@@ -21,6 +21,11 @@ Trois fonctions ajoutées à Open WebUI :
 > (`pip install open-webui` / `backend/dev.sh` / `uvicorn`), ou montez votre dossier de projet
 > dans le conteneur.
 
+> **Sans installer Python à la main :** les exécutables Windows/Linux construits par la CI
+> (voir le README, section « Téléchargement ») installent et lancent l'application. Pour activer
+> l'agent local avec eux : `BetterOpenWebUI --agent "C:\\Users\\moi\\projets"` (seul ce dossier est
+> autorisé, serveur limité à votre ordinateur).
+
 Variables d'environnement (voir aussi `.env.example`) :
 
 | Variable                      | Rôle                                                     | Défaut                  |

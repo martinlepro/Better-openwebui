@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+		/>
+		<meta name="color-scheme" content="light dark" />
+		<title>Better Open WebUI</title>
+		<style>
+			:root {
+				--bg: #ffffff;
+				--fg: #111827;
+				--muted: #6b7280;
+				--card: #f3f4f6;
+				--accent: #111827;
+				--accent-fg: #ffffff;
+				--error: #b91c1c;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #0b0b0c;
+					--fg: #f3f4f6;
+					--muted: #9ca3af;
+					--card: #1f2023;
+					--accent: #f3f4f6;
+					--accent-fg: #111827;
+					--error: #fca5a5;
+				}
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+				background: var(--bg);
+				color: var(--fg);
+				font-family:
+					system-ui,
+					-apple-system,
+					'Segoe UI',
+					Roboto,
+					sans-serif;
+			}
+			main {
+				width: 100%;
+				max-width: 420px;
+			}
+			h1 {
+				margin: 0 0 4px;
+				font-size: 1.4rem;
+			}
+			p {
+				margin: 0 0 16px;
+				color: var(--muted);
+				font-size: 0.95rem;
+				line-height: 1.4;
+			}
+			label {
+				display: block;
+				margin-bottom: 6px;
+				font-size: 0.85rem;
+				color: var(--muted);
+			}
+			input {
+				width: 100%;
+				padding: 14px;
+				border: 1px solid transparent;
+				border-radius: 14px;
+				background: var(--card);
+				color: var(--fg);
+				font-size: 1rem;
+			}
+			input:focus {
+				outline: 2px solid var(--accent);
+			}
+			button {
+				width: 100%;
+				margin-top: 12px;
+				padding: 14px;
+				border: 0;
+				border-radius: 14px;
+				background: var(--accent);
+				color: var(--accent-fg);
+				font-size: 1rem;
+				font-weight: 600;
+			}
+			button.link {
+				background: transparent;
+				color: var(--muted);
+				font-weight: 400;
+				text-decoration: underline;
+			}
+			.error {
+				min-height: 1.2em;
+				margin-top: 10px;
+				color: var(--error);
+				font-size: 0.9rem;
+			}
+			[hidden] {
+				display: none !important;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Better Open WebUI</h1>
+
+			<section id="connecting" hidden>
+				<p id="connecting-text"></p>
+				<button id="change" class="link" type="button"></button>
+			</section>
+
+			<form id="setup" hidden>
+				<p id="intro"></p>
+				<label id="label" for="url"></label>
+				<input
+					id="url"
+					type="url"
+					inputmode="url"
+					autocapitalize="off"
+					autocomplete="off"
+					autocorrect="off"
+					spellcheck="false"
+					placeholder="http://192.168.1.20:8080"
+				/>
+				<div id="error" class="error" role="alert"></div>
+				<button id="connect" type="submit"></button>
+			</form>
+		</main>
+
+		<script>
+			const KEY = 'bow-server-url';
+			const DELAY_MS = 2500;
+
+			const TEXT = {
+				fr: {
+					intro:
+						'Cette application est une fenêtre vers ton serveur Better Open WebUI (sur ton PC ou un serveur). Indique son adresse.',
+					label: 'Adresse du serveur',
+					connect: 'Se connecter',
+					connecting: 'Connexion à {url}…',
+					change: 'Changer de serveur',
+					invalid: 'Adresse invalide. Exemple : http://192.168.1.20:8080'
+				},
+				en: {
+					intro:
+						'This app is a window onto your Better Open WebUI server (on your PC or a server). Enter its address.',
+					label: 'Server address',
+					connect: 'Connect',
+					connecting: 'Connecting to {url}…',
+					change: 'Change server',
+					invalid: 'Invalid address. Example: http://192.168.1.20:8080'
+				}
+			};
+			const t = TEXT[(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en'];
+
+			const $ = (id) => document.getElementById(id);
+			let timer = null;
+
+			const read = () => {
+				try {
+					return localStorage.getItem(KEY) || '';
+				} catch {
+					return '';
+				}
+			};
+			const write = (value) => {
+				try {
+					localStorage.setItem(KEY, value);
+				} catch {
+					// storage unavailable: the address just has to be typed again next time
+				}
+			};
+
+			// "192.168.1.20:8080" -> "http://192.168.1.20:8080"; anything that is not http(s) is refused.
+			const normalize = (raw) => {
+				let value = (raw || '').trim();
+				if (!value) return null;
+				if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) value = 'http://' + value;
+				try {
+					const url = new URL(value);
+					if (!['http:', 'https:'].includes(url.protocol) || !url.hostname) return null;
+					return url.href.replace(/\/$/, '');
+				} catch {
+					return null;
+				}
+			};
+
+			const showSetup = (value) => {
+				clearTimeout(timer);
+				$('connecting').hidden = true;
+				$('setup').hidden = false;
+				$('url').value = value || '';
+				$('url').focus();
+			};
+
+			const go = (url) => {
+				window.location.href = url;
+			};
+
+			$('intro').textContent = t.intro;
+			$('label').textContent = t.label;
+			$('connect').textContent = t.connect;
+			$('change').textContent = t.change;
+
+			$('setup').addEventListener('submit', (event) => {
+				event.preventDefault();
+				const url = normalize($('url').value);
+				if (!url) {
+					$('error').textContent = t.invalid;
+					return;
+				}
+				write(url);
+				go(url);
+			});
+			$('change').addEventListener('click', () => showSetup(read()));
+
+			const saved = normalize(read());
+			if (saved) {
+				$('connecting').hidden = false;
+				$('connecting-text').textContent = t.connecting.replace('{url}', saved);
+				// A short pause so "Change server" can be tapped before connecting.
+				timer = setTimeout(() => go(saved), DELAY_MS);
+			} else {
+				showSetup('');
+			}
+		</script>
+	</body>
+</html>

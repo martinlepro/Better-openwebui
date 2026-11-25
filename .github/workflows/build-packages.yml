@@ -1,0 +1,177 @@
+name: Build packages (Windows, Linux, Android)
+
+# Builds, at every push to main and for every version tag (v*):
+#   - the Python wheel (the application itself, frontend included),
+#   - BetterOpenWebUI for Windows and Linux: a small launcher + the wheel, in one archive,
+#   - an Android APK (debug-signed): a window onto your server (experimental job, never blocks).
+# A tag (git tag v0.13.4 && git push origin v0.13.4) also publishes everything as a GitHub release.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: build-packages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  wheel:
+    name: Python wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5.1.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5.0.0
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6.3.0
+        with:
+          python-version: 3.12
+      - name: Build
+        env:
+          APP_BUILD_CHANNEL: main
+          APP_BUILD_HASH: ${{ github.sha }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+          python -m build --wheel .
+          ls -lh dist
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: wheel
+          path: dist/*.whl
+          if-no-files-found: error
+          retention-days: 30
+
+  launcher:
+    name: Launcher (${{ matrix.target }})
+    needs: wheel
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            exe: BetterOpenWebUI
+          - os: windows-latest
+            target: windows-x64
+            exe: BetterOpenWebUI.exe
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5.1.0
+      - uses: actions/setup-python@v6.3.0
+        with:
+          python-version: 3.12
+      - name: Download wheel
+        uses: actions/download-artifact@v5.0.0
+        with:
+          name: wheel
+          path: wheel
+      - name: Build the executable
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          python -m PyInstaller --onefile --name BetterOpenWebUI launcher/better_openwebui_launcher.py
+          ls -lh dist
+      - name: Smoke test (the executable starts)
+        shell: bash
+        run: ./dist/${{ matrix.exe }} --version
+      - name: Assemble the bundle
+        shell: bash
+        run: |
+          mkdir -p bundle/BetterOpenWebUI-${{ matrix.target }}
+          cp dist/${{ matrix.exe }} bundle/BetterOpenWebUI-${{ matrix.target }}/
+          cp wheel/*.whl bundle/BetterOpenWebUI-${{ matrix.target }}/
+          cp launcher/LISEZMOI.txt bundle/BetterOpenWebUI-${{ matrix.target }}/
+          ls -lh bundle/BetterOpenWebUI-${{ matrix.target }}
+      - name: Archive (Linux, keeps the executable bit)
+        if: runner.os == 'Linux'
+        run: tar -czf BetterOpenWebUI-${{ matrix.target }}.tar.gz -C bundle BetterOpenWebUI-${{ matrix.target }}
+      - name: Archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path "bundle/BetterOpenWebUI-${{ matrix.target }}" -DestinationPath "BetterOpenWebUI-${{ matrix.target }}.zip"
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: BetterOpenWebUI-${{ matrix.target }}
+          path: BetterOpenWebUI-${{ matrix.target }}.*
+          if-no-files-found: error
+          retention-days: 30
+
+  android:
+    name: Android APK (experimental)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5.1.0
+      - uses: actions/setup-node@v5.0.0
+        with:
+          node-version: 22
+      - name: Use JDK 21 (preinstalled on the runner)
+        run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+      - name: Generate the Android project
+        working-directory: android-app
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add android
+          # Capacitor does not enable plain http, which a server on your local network needs.
+          sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+          grep -c 'usesCleartextTraffic' android/app/src/main/AndroidManifest.xml
+          npx cap sync android
+      - name: Install the Android SDK platform
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+      - name: Build the APK
+        working-directory: android-app/android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Collect the APK
+        run: cp android-app/android/app/build/outputs/apk/debug/app-debug.apk BetterOpenWebUI-android-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: BetterOpenWebUI-android
+          path: BetterOpenWebUI-android-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish release
+    needs: [wheel, launcher, android]
+    # Android is experimental: a failure there must not prevent publishing the rest.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.wheel.result == 'success' && needs.launcher.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download every artifact
+        uses: actions/download-artifact@v5.0.0
+        with:
+          path: artifacts
+      - name: Create or update the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          find artifacts -type f
+          mapfile -t FILES < <(find artifacts -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.whl' \))
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          else
+            gh release create "$TAG" "${FILES[@]}" --title "$TAG" --generate-notes
+          fi

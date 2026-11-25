@@ -1,0 +1,44 @@
+BETTER OPEN WEBUI — lanceur / launcher
+======================================
+
+FRANÇAIS
+--------
+1. Windows : double-clique sur BetterOpenWebUI.exe.
+   (Windows SmartScreen peut afficher « Windows a protégé votre ordinateur » : clique sur
+   « Informations complémentaires » puis « Exécuter quand même ». Le programme n'est pas signé.)
+   Linux   : ouvre un terminal dans ce dossier et lance  ./BetterOpenWebUI
+2. Le PREMIER lancement télécharge Python et toutes les dépendances (plusieurs Go) : compte
+   plusieurs minutes. Les lancements suivants prennent quelques secondes.
+3. Ton navigateur s'ouvre sur http://127.0.0.1:8080. Crée ton compte : le premier compte créé
+   est l'administrateur.
+4. Ctrl+C dans la fenêtre pour arrêter.
+
+Options (en ligne de commande) :
+  BetterOpenWebUI --agent "C:\Users\moi\projets"   active l'agent local (fichiers + commandes)
+                                                   sur CE dossier uniquement
+  BetterOpenWebUI --lan                            accessible depuis le téléphone (même Wi-Fi)
+  BetterOpenWebUI --port 9000                      autre port
+  BetterOpenWebUI --reinstall                      réinstalle l'application
+  BetterOpenWebUI --no-browser                     n'ouvre pas le navigateur
+
+Tes données (conversations, réglages) sont dans :
+  Windows : %LOCALAPPDATA%\BetterOpenWebUI        Linux : ~/.local/share/better-openwebui
+Elles sont conservées lors des mises à jour : remplace simplement le dossier du lanceur et de la
+wheel par la nouvelle version, puis relance.
+
+SÉCURITÉ : par défaut le serveur n'écoute que sur ton ordinateur (127.0.0.1). N'utilise --lan
+que sur un réseau de confiance, et crée ton compte administrateur AVANT de partager l'adresse.
+L'agent local exécute des commandes avec tes droits : voir docs/FILE_ATTENTE_ET_AGENT_LOCAL.md.
+
+ENGLISH
+-------
+1. Windows: double-click BetterOpenWebUI.exe (SmartScreen: "More info" > "Run anyway" — the
+   program is unsigned). Linux: run ./BetterOpenWebUI in a terminal.
+2. The FIRST run downloads Python and all dependencies (several GB). Later runs take seconds.
+3. Your browser opens http://127.0.0.1:8080. The first account you create is the administrator.
+4. Press Ctrl+C in the window to stop.
+
+Options: --agent FOLDER (enable the local agent on that folder only), --lan (reachable from your
+phone on the same Wi-Fi), --port N, --reinstall, --no-browser.
+Your data lives in %LOCALAPPDATA%\BetterOpenWebUI (Windows) or ~/.local/share/better-openwebui
+(Linux) and survives updates.

@@ -1,0 +1,17 @@
+{
+	"name": "better-openwebui-android",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Android window onto your Better Open WebUI server (the server itself runs on a PC or a server).",
+	"scripts": {
+		"android:add": "cap add android",
+		"android:sync": "cap sync android"
+	},
+	"dependencies": {
+		"@capacitor/android": "^8.6.2",
+		"@capacitor/core": "^8.6.2"
+	},
+	"devDependencies": {
+		"@capacitor/cli": "^8.6.2"
+	}
+}

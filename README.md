@@ -39,6 +39,30 @@
 
 [Explore Open WebUI →](https://docs.openwebui.com/)
 
+### Better Open WebUI: what this fork adds
+
+- **Automatic resume after a usage limit** – when Claude (or any provider) hits its limit, a message is sent by itself as soon as the limit is over. Arm it with one button under the error message or with the switch in the chat bar.
+- **Conversation queue with priorities** – stack conversations, reorder them, and let the server run them one by one, even with the browser closed. Pauses by itself during a limit and resumes right after.
+- **Notifications** – limit reached, one conversation finished (with a preview and the files it changed), everything finished, approval needed. In the app, in the browser, with a sound, and on your phone through a webhook.
+- **Local agent (like Claude Code)** – the model can read and edit files, run commands and start dev servers on your computer, inside folders you allow, with per-action approvals. Off by default and administrators only. It runs code with your rights: read [the guide](docs/FILE_ATTENTE_ET_AGENT_LOCAL.md) (in French) first.
+
+### Download: Windows, Linux, Android
+
+Every push to `main` builds the packages (GitHub → _Actions_ → _Build packages_ → _Artifacts_). Every version tag publishes them as a [release](https://github.com/martinlepro/Better-openwebui/releases).
+
+| Platform                 | File                                    | How to use                                                                                                            |
+| ------------------------ | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Windows                  | `BetterOpenWebUI-windows-x64.zip`       | Unzip, double-click `BetterOpenWebUI.exe` (SmartScreen: _More info_ → _Run anyway_, the program is unsigned).         |
+| Linux                    | `BetterOpenWebUI-linux-x64.tar.gz`      | `tar -xzf BetterOpenWebUI-linux-x64.tar.gz`, then `./BetterOpenWebUI` in the new folder.                              |
+| Android                  | `BetterOpenWebUI-android-debug.apk`     | Install it (allow unknown sources), then enter the address of your server. It is a window onto the server, see below. |
+| Any (Python 3.11 / 3.12) | `open_webui-<version>-py3-none-any.whl` | `pip install open_webui-<version>-py3-none-any.whl`, then `open-webui serve`.                                         |
+
+**Get a given version:** `git tag v0.13.4 && git push origin v0.13.4`, then wait for the _Build packages_ run to finish: the files appear in the release `v0.13.4`.
+
+- The Windows/Linux launcher is small (about 8 MB). The **first start installs Python and the dependencies** (several GB, a few minutes). Later starts take seconds. It listens on `127.0.0.1` only.
+- Useful options: `--agent "C:\Users\me\projects"` enables the local agent on that folder only, `--lan` makes the server reachable from your phone on the same Wi-Fi, `--port 9000`, `--reinstall`. Your data survives updates.
+- **Android:** the server itself (Python) cannot run inside an Android app, so the APK is a window onto a server running on your PC or elsewhere. On your PC run `BetterOpenWebUI --lan`, then enter `http://<PC address>:8080` in the app. The APK is built as an _experimental_ job and is debug-signed.
+
 ### Installation
 
 #### Python
